@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+
+<body>
+    <div id="app">
+        <el-form ref="form" :model="form" label-width="160px" v-loading="loading">
+            <el-form-item label="Target Component:">
+                <el-radio-group v-model="form.targetplatform" @change="targetplatformChange">
+                    <el-radio label="BigPicture"></el-radio>
+                    <el-radio label="Calendar"></el-radio>
+                    <el-radio label="Side"></el-radio>
+                    <el-radio label="Default"></el-radio>
+                    <el-radio label="Custom"></el-radio>
+                </el-radio-group>
+                <div v-if="form.targetplatform == 'Custom...'">
+                    <el-col :span="3">width:</el-col>
+                    <el-col :span="9">
+                        <el-input v-model="form.targetWidth"></el-input>
+                    </el-col>
+                    <el-col :span="3">height:</el-col>
+                    <el-col :span="9">
+                        <el-input v-model="form.targetHeight"></el-input>
+                    </el-col>
+                </div>
+            </el-form-item>
+            <el-form-item v-if="form.targetWidth>880">
+                <el-alert title="width greater than maximum allowed for calendar" type="warning" center show-icon>
+                </el-alert>
+            </el-form-item>
+            <el-form-item v-if="form.targetHeight>511">
+                <el-alert title="height greater than maximum allowed for calendar" type="warning" center show-icon>
+                </el-alert>
+            </el-form-item>
+            <el-form-item>
+                <el-upload accept="image/*" action="#" class="avatar-uploader" :show-file-list="false" drag
+                    :http-request="alele" :auto-upload="false" ref="upload" :on-change="onImgChange">
+                    <img v-if="form.imageUrl" :src="form.imageUrl" class="avatar" style="height: 100%">
+                    <div v-else>
+                        <i class="el-icon-upload"></i>
+                        <div class="el-upload__text">Drag and drop / click here</em></div>
+                        <div class="el-upload__tip" slot="tip">Upload your image</div>
+                    </div>
+                </el-upload>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="onSubmit">Upload</el-button>
+                <el-button type="success" @click="downloadPPM" v-if="form.resUrl">Download PPM</el-button>
+            </el-form-item>
+            <el-form-item v-if="form.resUrl">
+                <el-image style="width: 100px; height: 100px;" :src="'/static/' + form.resUrl + '.png'"
+                    fit="scale-down">
+                </el-image>
+            </el-form-item>
+        </el-form>
+    </div>
+</body>
+
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                form: {
+                    targetplatform: 'Default',
+                    targetWidth: null,
+                    targetHeight: null,
+                    imageUrl: null,
+                    resUrl: null,
+                },
+                loading: false,
+            };
+        },
+        methods: {
+            targetplatformChange() {
+                if (this.form.targetplatform == 'BigPicture') {
+                    this.form.targetWidth = 880;
+                    this.form.targetHeight = 511;
+                } else if (this.form.targetplatform == 'Calendar') {
+                    this.form.targetWidth = 500;
+                    this.form.targetHeight = 511;
+                } else if (this.form.targetplatform == 'Side') {
+                    this.form.targetWidth = 380;
+                    this.form.targetHeight = 511;
+                } else if (this.form.targetplatform == 'Default') {
+                    this.form.targetWidth = null;
+                    this.form.targetHeight = null;
+                }
+            },
+            onImgChange(file) {
+                console.log(file.raw);
+                this.form.imageUrl = URL.createObjectURL(file.raw);
+            },
+            onSubmit() {
+                this.$refs.upload.submit();
+            },
+            alele(param) {
+                this.loading = true;
+                data = new FormData();
+                if (this.form.targetWidth) {
+                    data.append('width', this.form.targetWidth);
+                }
+                if (this.form.targetHeight) {
+                    data.append('height', this.form.targetHeight);
+                }
+                data.append('image', param.file);
+                fetch('/upload', {
+                    method: 'POST',
+                    body: data,
+                }).then(
+                    response => response.json()
+                ).then(rj => {
+                    this.form.resUrl = rj.filename;
+                    this.loading = false;
+                }).catch(error => {
+                    alert('Error uploading image :<\nMake sure you have a stable Internet connection!');
+                    //this.$message.error('Error uploading image :<');
+                    this.loading = false;
+                });
+            },
+            downloadPPM() {
+                this.loading = true;
+                const ppmUrl = '/static/' + this.form.resUrl + '.ppm';
+                fetch(ppmUrl)
+                    .then(resp => resp.blob())
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        // the filename you want
+                        a.download = this.form.targetplatform + '.ppm';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        this.$message('Your downloaded has started!');
+                        //alert('your file has downloaded!');
+                        this.loading = false;
+                    })
+                    .catch(() => {
+                        this.$message.error('Failed to download PPM :<');
+                        this.loading = false;
+                    });
+            }
+        },
+    });
+</script>
+
+<style>
+    .hideUpload>div {
+        display: none;
+    }
+</style>
+
+</html>
