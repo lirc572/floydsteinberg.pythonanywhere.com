@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="UTF-8">
-    <!-- import CSS -->
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
 </head>
 
@@ -18,16 +17,16 @@
                     <el-radio label="Default"></el-radio>
                     <el-radio label="Custom"></el-radio>
                 </el-radio-group>
-                <div v-if="form.targetplatform == 'Custom...'">
-                    <el-col :span="3">width:</el-col>
-                    <el-col :span="9">
-                        <el-input v-model="form.targetWidth"></el-input>
-                    </el-col>
-                    <el-col :span="3">height:</el-col>
-                    <el-col :span="9">
-                        <el-input v-model="form.targetHeight"></el-input>
-                    </el-col>
-                </div>
+            </el-form-item>
+            <el-form-item v-if="form.targetplatform == 'Custom'">
+                <el-col :span="2" style="text-align: center;">width:</el-col>
+                <el-col :span="4">
+                    <el-input v-model="form.targetWidth"></el-input>
+                </el-col>
+                <el-col :span="2" style="text-align: center;">height:</el-col>
+                <el-col :span="4">
+                    <el-input v-model="form.targetHeight"></el-input>
+                </el-col>
             </el-form-item>
             <el-form-item v-if="form.targetWidth>880">
                 <el-alert title="width greater than maximum allowed for calendar" type="warning" center show-icon>
@@ -61,9 +60,8 @@
     </div>
 </body>
 
-<!-- import Vue before Element -->
-<script src="https://unpkg.com/vue/dist/vue.js"></script>
-<!-- import JavaScript -->
+<!--script src="https://unpkg.com/vue/dist/vue.js"></script-->
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <script src="https://unpkg.com/element-ui/lib/index.js"></script>
 <script>
     new Vue({
@@ -123,7 +121,6 @@
                     this.loading = false;
                 }).catch(error => {
                     alert('Error uploading image :<\nMake sure you have a stable Internet connection!');
-                    //this.$message.error('Error uploading image :<');
                     this.loading = false;
                 });
             },
@@ -143,7 +140,6 @@
                         a.click();
                         window.URL.revokeObjectURL(url);
                         this.$message('Your downloaded has started!');
-                        //alert('your file has downloaded!');
                         this.loading = false;
                     })
                     .catch(() => {
